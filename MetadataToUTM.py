@@ -21,31 +21,26 @@ def getDirectory():
             print("This is not a valid directory! Please try again.")
     
     while True:
-        coordinateSystem = input("Coordinate System: (l)atitude & longitude or (u)tm?\n").lower()
-        if coordinateSystem != "l" and coordinateSystem != "u":
-            print("Please enter a valid selection ('l' or 'c')")
+        coordinateSystem = input("Coordinate System: (l)atitude & longitude, (u)tm, or (b)oth?\n").lower()
+        if coordinateSystem != "l" and coordinateSystem != "u" and coordinateSystem != "b":
+            print("Please enter a valid selection ('l', 'b', or 'c')")
         else:
             selections.append(coordinateSystem)
             break
                  
-    return selections
-
-def cleanMetadata(metadata):
-    cleanedMetadata = defaultdict(list)
-    for item in metadata:
-        columns = []
-        for value in metadata[str(item)]:
-                columns.append(value)
-        cleanedMetadata[item].append(columns)
-    return cleanedMetadata
-    
+    return selections    
 
 def pullMetadata(workingDir):
-    metadata = {}
-    for file in os_sorted(os.listdir(workingDir)):
-         if file.endswith(".jpg") or file.endswith(".jpeg"):
-             data = gpsphoto.getGPSData(os.path.join(workingDir, file))
-             metadata[file] = {data["Latitude"], data["Longitude"]}
+    metadata = defaultdict(list)
+    files = os_sorted(os.listdir(workingDir))
+    for item in files:
+        columns = []
+        if item.lower().endswith((".png", ".jpg", ".jpeg")):
+            data = gpsphoto.getGPSData(os.path.join(workingDir, item))
+            columns.append(data["Latitude"])
+            columns.append(data["Longitude"])
+            metadata[item].append(columns)
+                         
     return metadata
 
 def convertToUTM(gpsCoordinates):
@@ -66,6 +61,7 @@ def convertToUTM(gpsCoordinates):
     
     UTMCoordinateSet = defaultdict(list)
     for coordinateSet in gpsCoordinates:
+        columns = []
         for latLong in gpsCoordinates[str(coordinateSet)]:
             latitude = latLong[0]
             longitude = latLong[1]
@@ -101,10 +97,11 @@ def convertToUTM(gpsCoordinates):
             bandAndZone = f'{zone}{band}'
             
             #Create entry in dictionary
-            UTMCoordinateSet[coordinateSet].append(easting)
-            UTMCoordinateSet[coordinateSet].append(northing)
-            UTMCoordinateSet[coordinateSet].append(bandAndZone)
+            columns.append(easting)
+            columns.append(northing)
+            columns.append(bandAndZone)
             #print(f'{coordinateSet}, LatitudeInRadians={latitudeInRadians}, LongitudeInRadians={longitudeInRadians}, A={A}, Xi={Xi}, Eta={Eta}, Ni={Ni}, Zeta={Zeta}, A1={A1}, A2={A2}, J2={J2}, J4={J4}, J6={J6}, Alpha={Alpha}, Beta={Beta}, Gamma={Gamma}, B={B}, {easting}, {northing}, {bandAndZone}')
+        UTMCoordinateSet[coordinateSet].append(columns)
     return UTMCoordinateSet
 
 def csvOutput(dataToOutput, mode, fileLocation):
@@ -112,14 +109,15 @@ def csvOutput(dataToOutput, mode, fileLocation):
     with open(fileName, 'w', newline='') as csvfile:
         outputWriter = csv.writer(csvfile, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL)
         if mode == "u":
+            UTMData = convertToUTM(dataToOutput)
             outputWriter.writerow(['Filename'] + ['ID'] + ['UTMEasting'] + ['UTMNorthing'] + ['UTM Band and Zone'])
             i = 0
-            for entry in dataToOutput:
+            for entry in UTMData:
                 rowData = []
                 rowData.append(entry)
                 rowData.append(i)
                 i += 1
-                for value in dataToOutput[str(entry)]:
+                for value in UTMData[str(entry)]:
                     rowData.append(value[0])
                     rowData.append(value[1])
                     rowData.append(value[2])
@@ -136,15 +134,25 @@ def csvOutput(dataToOutput, mode, fileLocation):
                     rowData.append(value[0])
                     rowData.append(value[1])
                 outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]])
+        if mode == "b":
+            UTMData = convertToUTM(dataToOutput)
+            outputWriter.writerow(['Filename'] + ['ID'] + ['Latitude'] + ['Longitude'] + ['UTMEasting'] + ['UTMNorthing'] + ['UTM Band and Zone'])        
+            i = 0
+            for entry in dataToOutput:
+                rowData = []
+                rowData.append(entry)
+                rowData.append(i)
+                i += 1
+                for value in dataToOutput[str(entry)]:
+                    rowData.append(value[0])
+                    rowData.append(value[1])
+                for value in UTMData[str(entry)]:
+                    rowData.append(value[0])
+                    rowData.append(value[1])
+                    rowData.append(value[2])
+                outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]] + [rowData[4]] + [rowData[5]] + [rowData[6]])
 
 selections = getDirectory()
 metadata = pullMetadata(selections[0])
-cleanedMetadata = cleanMetadata(metadata)
-UTMData = cleanMetadata(convertToUTM(cleanedMetadata))
-
-if selections[1] == "u":
-    csvOutput(UTMData, "u", selections[0])
-else:
-    csvOutput(cleanedMetadata, "l", selections[0])
-
+csvOutput(metadata, selections[1], selections[0])
 
