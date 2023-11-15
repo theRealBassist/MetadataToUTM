@@ -125,14 +125,17 @@ def csvOutput(dataToOutput, mode, fileLocation):
                     rowData.append(value[2])
                 outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]] + [rowData[4]])
         if mode == "l":
-            outputWriter.writerow(['Filename'] + ['Latitude'] + ['Longitude'])
+            outputWriter.writerow(['Filename'] + ['ID'] + ['Latitude'] + ['Longitude'])
+            i = 0
             for entry in dataToOutput:
                 rowData = []
                 rowData.append(entry)
+                rowData.append(i)
+                i += 1
                 for value in dataToOutput[str(entry)]:
                     rowData.append(value[0])
                     rowData.append(value[1])
-                outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]])
+                outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]])
 
 selections = getDirectory()
 metadata = pullMetadata(selections[0])
