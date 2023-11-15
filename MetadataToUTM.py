@@ -4,7 +4,6 @@ from natsort import os_sorted
 from GPSPhoto import gpsphoto
 import math
 from collections import defaultdict
-import csv
 import tablib
 
 def getDirectory():
@@ -109,57 +108,8 @@ def convertToUTM(gpsCoordinates):
             columns.append(easting)
             columns.append(northing)
             columns.append(bandAndZone)
-            #print(f'{coordinateSet}, LatitudeInRadians={latitudeInRadians}, LongitudeInRadians={longitudeInRadians}, A={A}, Xi={Xi}, Eta={Eta}, Ni={Ni}, Zeta={Zeta}, A1={A1}, A2={A2}, J2={J2}, J4={J4}, J6={J6}, Alpha={Alpha}, Beta={Beta}, Gamma={Gamma}, B={B}, {easting}, {northing}, {bandAndZone}')
         UTMCoordinateSet[coordinateSet].append(columns)
     return UTMCoordinateSet
-
-# def csvOutput(dataToOutput, mode, fileLocation):
-#     fileName = os.path.join(fileLocation, "out.csv")
-#     with open(fileName, 'w', newline='') as csvfile:
-#         outputWriter = csv.writer(csvfile, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL)
-#         if mode == "u":
-#             UTMData = convertToUTM(dataToOutput)
-#             outputWriter.writerow(['Filename'] + ['ID'] + ['UTMEasting'] + ['UTMNorthing'] + ['UTM Band and Zone'])
-#             i = 0
-#             for entry in UTMData:
-#                 rowData = []
-#                 rowData.append(entry)
-#                 rowData.append(i)
-#                 i += 1
-#                 for value in UTMData[str(entry)]:
-#                     rowData.append(value[0])
-#                     rowData.append(value[1])
-#                     rowData.append(value[2])
-#                 outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]] + [rowData[4]])
-#         if mode == "l":
-#             outputWriter.writerow(['Filename'] + ['ID'] + ['Latitude'] + ['Longitude'])
-#             i = 0
-#             for entry in dataToOutput:
-#                 rowData = []
-#                 rowData.append(entry)
-#                 rowData.append(i)
-#                 i += 1
-#                 for value in dataToOutput[str(entry)]:
-#                     rowData.append(value[0])
-#                     rowData.append(value[1])
-#                 outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]])
-#         if mode == "b":
-#             UTMData = convertToUTM(dataToOutput)
-#             outputWriter.writerow(['Filename'] + ['ID'] + ['Latitude'] + ['Longitude'] + ['UTMEasting'] + ['UTMNorthing'] + ['UTM Band and Zone'])        
-#             i = 0
-#             for entry in dataToOutput:
-#                 rowData = []
-#                 rowData.append(entry)
-#                 rowData.append(i)
-#                 i += 1
-#                 for value in dataToOutput[str(entry)]:
-#                     rowData.append(value[0])
-#                     rowData.append(value[1])
-#                 for value in UTMData[str(entry)]:
-#                     rowData.append(value[0])
-#                     rowData.append(value[1])
-#                     rowData.append(value[2])
-#                 outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]] + [rowData[4]] + [rowData[5]] + [rowData[6]])
 
 def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
     outputData = tablib.Dataset()
