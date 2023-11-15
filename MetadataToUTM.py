@@ -5,6 +5,7 @@ from GPSPhoto import gpsphoto
 import math
 from collections import defaultdict
 import csv
+import tablib
 
 def getDirectory():
     selections = []
@@ -26,6 +27,14 @@ def getDirectory():
             print("Please enter a valid selection ('l', 'b', or 'c')")
         else:
             selections.append(coordinateSystem)
+            break
+    
+    while True:
+        exportFormat = input("Export Format: (x)lsx or (c)sv?\n")
+        if exportFormat != "x" and exportFormat != "c":
+            print("Please enter a valid selection ('x' or 'c')")
+        else:
+            selections.append(exportFormat)
             break
                  
     return selections    
@@ -104,55 +113,110 @@ def convertToUTM(gpsCoordinates):
         UTMCoordinateSet[coordinateSet].append(columns)
     return UTMCoordinateSet
 
-def csvOutput(dataToOutput, mode, fileLocation):
-    fileName = os.path.join(fileLocation, "out.csv")
-    with open(fileName, 'w', newline='') as csvfile:
-        outputWriter = csv.writer(csvfile, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL)
-        if mode == "u":
-            UTMData = convertToUTM(dataToOutput)
-            outputWriter.writerow(['Filename'] + ['ID'] + ['UTMEasting'] + ['UTMNorthing'] + ['UTM Band and Zone'])
-            i = 0
-            for entry in UTMData:
-                rowData = []
-                rowData.append(entry)
-                rowData.append(i)
-                i += 1
-                for value in UTMData[str(entry)]:
-                    rowData.append(value[0])
-                    rowData.append(value[1])
-                    rowData.append(value[2])
-                outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]] + [rowData[4]])
-        if mode == "l":
-            outputWriter.writerow(['Filename'] + ['ID'] + ['Latitude'] + ['Longitude'])
-            i = 0
-            for entry in dataToOutput:
-                rowData = []
-                rowData.append(entry)
-                rowData.append(i)
-                i += 1
-                for value in dataToOutput[str(entry)]:
-                    rowData.append(value[0])
-                    rowData.append(value[1])
-                outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]])
-        if mode == "b":
-            UTMData = convertToUTM(dataToOutput)
-            outputWriter.writerow(['Filename'] + ['ID'] + ['Latitude'] + ['Longitude'] + ['UTMEasting'] + ['UTMNorthing'] + ['UTM Band and Zone'])        
-            i = 0
-            for entry in dataToOutput:
-                rowData = []
-                rowData.append(entry)
-                rowData.append(i)
-                i += 1
-                for value in dataToOutput[str(entry)]:
-                    rowData.append(value[0])
-                    rowData.append(value[1])
-                for value in UTMData[str(entry)]:
-                    rowData.append(value[0])
-                    rowData.append(value[1])
-                    rowData.append(value[2])
-                outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]] + [rowData[4]] + [rowData[5]] + [rowData[6]])
+# def csvOutput(dataToOutput, mode, fileLocation):
+#     fileName = os.path.join(fileLocation, "out.csv")
+#     with open(fileName, 'w', newline='') as csvfile:
+#         outputWriter = csv.writer(csvfile, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL)
+#         if mode == "u":
+#             UTMData = convertToUTM(dataToOutput)
+#             outputWriter.writerow(['Filename'] + ['ID'] + ['UTMEasting'] + ['UTMNorthing'] + ['UTM Band and Zone'])
+#             i = 0
+#             for entry in UTMData:
+#                 rowData = []
+#                 rowData.append(entry)
+#                 rowData.append(i)
+#                 i += 1
+#                 for value in UTMData[str(entry)]:
+#                     rowData.append(value[0])
+#                     rowData.append(value[1])
+#                     rowData.append(value[2])
+#                 outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]] + [rowData[4]])
+#         if mode == "l":
+#             outputWriter.writerow(['Filename'] + ['ID'] + ['Latitude'] + ['Longitude'])
+#             i = 0
+#             for entry in dataToOutput:
+#                 rowData = []
+#                 rowData.append(entry)
+#                 rowData.append(i)
+#                 i += 1
+#                 for value in dataToOutput[str(entry)]:
+#                     rowData.append(value[0])
+#                     rowData.append(value[1])
+#                 outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]])
+#         if mode == "b":
+#             UTMData = convertToUTM(dataToOutput)
+#             outputWriter.writerow(['Filename'] + ['ID'] + ['Latitude'] + ['Longitude'] + ['UTMEasting'] + ['UTMNorthing'] + ['UTM Band and Zone'])        
+#             i = 0
+#             for entry in dataToOutput:
+#                 rowData = []
+#                 rowData.append(entry)
+#                 rowData.append(i)
+#                 i += 1
+#                 for value in dataToOutput[str(entry)]:
+#                     rowData.append(value[0])
+#                     rowData.append(value[1])
+#                 for value in UTMData[str(entry)]:
+#                     rowData.append(value[0])
+#                     rowData.append(value[1])
+#                     rowData.append(value[2])
+#                 outputWriter.writerow([rowData[0]] + [rowData[1]] + [rowData[2]] + [rowData[3]] + [rowData[4]] + [rowData[5]] + [rowData[6]])
+
+def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
+    outputData = tablib.Dataset()
+    if conversionMode == "u":
+        UTMData = convertToUTM(dataToOutput)
+        outputData.headers = ["Filename", "ID", "UTM Easting", "UTM Northing", "UTM Band and Zone"]
+        i = 0
+        for entry in UTMData:
+            rowData = []
+            rowData.append(entry)
+            rowData.append(i)
+            i += 1
+            for value in UTMData[str(entry)]:
+                rowData.append(value[0])
+                rowData.append(value[1])
+                rowData.append(value[2])
+            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4]])
+    if conversionMode == "l":
+        outputData.headers = ["Filename", "ID", "Latitude", "Longitude"]
+        i = 0
+        for entry in dataToOutput:
+            rowData = []
+            rowData.append(entry)
+            rowData.append(i)
+            i += 1
+            for value in dataToOutput[str(entry)]:
+                rowData.append(value[0])
+                rowData.append(value[1])
+            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3]])
+    if conversionMode == "b":
+        UTMData = convertToUTM(dataToOutput)
+        outputData.headers = ["Filename", "ID", "Latitude", "Longitude", "UTM Easting", "UTM Northing", "UTM Band and Zone"]
+        i = 0
+        for entry in dataToOutput:
+            rowData = []
+            rowData.append(entry)
+            rowData.append(i)
+            i += 1
+            for value in dataToOutput[str(entry)]:
+                rowData.append(value[0])
+                rowData.append(value[1])
+            for value in UTMData[str(entry)]:
+                rowData.append(value[0])
+                rowData.append(value[1])
+                rowData.append(value[2])
+            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4], rowData[5], rowData[6]])
+    if exportMode == "x":
+        outputFileLocation = os.path.join(fileLocation, "out.xlsx")
+        with open(outputFileLocation, 'wb') as f:
+            f.write(outputData.export('xlsx'))
+    else:
+        outputFileLocation = os.path.join(fileLocation, "out.csv")
+        with open (outputFileLocation, 'w', newline='') as f:
+            f.write(outputData.export('csv'))
 
 selections = getDirectory()
 metadata = pullMetadata(selections[0])
-csvOutput(metadata, selections[1], selections[0])
+exportData(metadata, selections[0], selections[1], selections[2])
+
 
