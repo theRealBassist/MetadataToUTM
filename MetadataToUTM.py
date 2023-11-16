@@ -18,7 +18,7 @@ def getDirectory(): #responsible for displaying the UI and collecting desired se
     
     while True:
         tkinter.Tk().withdraw()
-        workingDir = filedialog.askdirectory(initialdir = "/", title = "Select the directory which contains your images")
+        workingDir = filedialog.askdirectory(initialdir = "/", title = "Select the directory which contains your images") #Tkinter allows for the creation of pop-up file directories
         if os.path.exists(workingDir): #pathlib is incompatible with pyinstaller, so I'm using os.path
             selections.append(workingDir)
             break
