@@ -1,6 +1,6 @@
 # Metadata to UTM extraction and conversion tool
 
-MetadataToUTM is a very simple utility to extract embedded Latitude and Longitude GPS data from images, convert to a Universal Transverse Mercator projection if desired, and export to either .csv or .xslx file format.
+MetadataToUTM is a very simple utility to extract embedded Latitude and Longitude GPS data from images, convert to a Universal Transverse Mercator projection if desired, and export to either .csv or .xlsx file format.
 
 ## Usage
 
