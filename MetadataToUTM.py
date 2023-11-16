@@ -6,6 +6,7 @@ import math
 from collections import defaultdict
 import tablib
 
+
 def getDirectory():
     selections = []
     
