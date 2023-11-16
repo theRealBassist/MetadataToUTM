@@ -11,4 +11,3 @@ MetadataToUTM is a very simple utility to extract embedded Latitude and Longitud
    1. NOTE: you must enter the characters as they are listed. E.g. `B` is invalid whereas `b` is valid.
 5. Choose which output format you desire. 
 6. You can then find your created `out.xlsx` or `out.csv` file in the folder alongside your images
-7. kjsdkfjbds
