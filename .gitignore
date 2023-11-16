@@ -1,1 +1,2 @@
-*.spec
+MetadataToUTM.spec
+build/
