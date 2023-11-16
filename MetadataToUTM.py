@@ -167,7 +167,6 @@ def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
         with open (outputFileLocation, 'w', newline='') as f:
             f.write(outputData.export('csv'))
 
-test = tablib.formats._xlsx.XLSXFormat
 selections = getDirectory()
 metadata = pullMetadata(selections[0])
 exportData(metadata, selections[0], selections[1], selections[2])
