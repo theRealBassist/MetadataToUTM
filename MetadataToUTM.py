@@ -5,18 +5,18 @@ from GPSPhoto import gpsphoto
 import math
 from collections import defaultdict
 import tablib
-import tablib.formats._xlsx
+import tablib.formats._xlsx #if you don't specifically import the ._xlsx format, the program will run fine.... on your system. 
+                            # to have it run after being compiled with pyinstaller, you need to specifically import this.
 
-
-def getDirectory():
-    selections = []
+def getDirectory(): #responsible for displaying the UI and collecting desired selections
+    selections = [] #to simplify calls later, the selections are stored in a single array
     
     print("METADATA TO UTM")
     print("===============")
     
     while True:
         workingDir = input("Enter the full file path of the folder where your images are stored:\n")
-        if os.path.exists(workingDir):
+        if os.path.exists(workingDir): #pathlib is incompatible with pyinstaller, so I'm using os.path
             selections.append(workingDir)
             break
         else:
@@ -40,22 +40,26 @@ def getDirectory():
                  
     return selections    
 
-def pullMetadata(workingDir):
-    metadata = defaultdict(list)
-    files = os_sorted(os.listdir(workingDir))
+def pullMetadata(workingDir): #responsible for extracting metadata from the images themselves
+    metadata = defaultdict(list) #using defaultdict allows for noninstantiated data to be set into the dictionary
+                                 #additionally, I am using a dictionary to ease the process of calling specific filenames later
+    files = os_sorted(os.listdir(workingDir)) #os_sorted from natsort allows the files to sort as '1, 2, 3, 4...20, 21..., 30, 31' instead of '1, 10, 11... 2, 20, 21'
     for item in files:
-        columns = []
-        if item.lower().endswith((".png", ".jpg", ".jpeg")):
-            data = gpsphoto.getGPSData(os.path.join(workingDir, item))
-            columns.append(data["Latitude"])
-            columns.append(data["Longitude"])
-            metadata[item].append(columns)
+        columns = [] #I am using an array here instead of just two independent entries for the dictionary to ease the UTM calculations later
+        if item.lower().endswith((".png", ".jpg", ".jpeg")): #a previous iteration of this only allowed for jpgs, but this also serves as a quick check that we are actually working with images to avoid IO errors
+            try:
+                data = gpsphoto.getGPSData(os.path.join(workingDir, item))#the GPSPhoto library is by far the easiest way to extract the relevant metadata for this
+                columns.append(data["Latitude"])
+                columns.append(data["Longitude"])
+                metadata[item].append(columns)
+            except:
+                print(f"There was an error reading metadata from: {item}")#If an image does not have the relevant metadata, it will except and stop the whole script, so this handles that situation
                          
     return metadata
 
 def convertToUTM(gpsCoordinates):
     #Values for UTM Band
-    UTMBandChars = ["C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "X"]
+    UTMBandChars = ["C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "X"] #UTM uses a specific set of characters, so we reference them here
     
     #Constants
     semiMajorAxis = 6378137
@@ -63,7 +67,7 @@ def convertToUTM(gpsCoordinates):
     pi = math.pi
     e = math.e
     
-    #Derived Constants
+    #Derived Constants #I have literally no idea how most of this works, but it does /shrug
     eccentricity = math.sqrt((semiMajorAxis*semiMajorAxis)-(semiMinorAxis*semiMinorAxis))/semiMajorAxis
     eccentricityPrime = math.sqrt((semiMajorAxis*semiMajorAxis)-(semiMinorAxis*semiMinorAxis))/semiMinorAxis
     ePrime2 = eccentricityPrime*eccentricityPrime
@@ -102,7 +106,7 @@ def convertToUTM(gpsCoordinates):
             easting = Xi * Ni * (1+(Zeta/3)) + 500000
             northing = Eta * Ni * (1+Zeta) + B
             zone = spindleCalculation
-            numericBand = math.floor((latitude+80)/8)
+            numericBand = math.floor((latitude+80)/8) #we use this value to decide which of the band letters from above we use
             band = UTMBandChars[numericBand]
             bandAndZone = f'{zone}{band}'
             
@@ -114,13 +118,13 @@ def convertToUTM(gpsCoordinates):
     return UTMCoordinateSet
 
 def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
-    outputData = tablib.Dataset()
-    if conversionMode == "u":
+    outputData = tablib.Dataset() #while there are more in-depth libraries for writing .csv files, tablib is by far the easiest way to write .xlsx files
+    if conversionMode == "u": #UTM data
         UTMData = convertToUTM(dataToOutput)
-        outputData.headers = ["Filename", "ID", "UTM Easting", "UTM Northing", "UTM Band and Zone"]
-        i = 0
+        outputData.headers = ["Filename", "ID", "UTM Easting", "UTM Northing", "UTM Band and Zone"] #establishes the column headers
+        i = 0 #we use this counter to generate the ID column
         for entry in UTMData:
-            rowData = []
+            rowData = [] #there's probably a better way to do this, but this works pretty well.
             rowData.append(entry)
             rowData.append(i)
             i += 1
@@ -129,7 +133,7 @@ def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
                 rowData.append(value[1])
                 rowData.append(value[2])
             outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4]])
-    if conversionMode == "l":
+    if conversionMode == "l": #lat/long data
         outputData.headers = ["Filename", "ID", "Latitude", "Longitude"]
         i = 0
         for entry in dataToOutput:
@@ -141,7 +145,7 @@ def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
                 rowData.append(value[0])
                 rowData.append(value[1])
             outputData.append([rowData[0], rowData[1], rowData[2], rowData[3]])
-    if conversionMode == "b":
+    if conversionMode == "b": #both
         UTMData = convertToUTM(dataToOutput)
         outputData.headers = ["Filename", "ID", "Latitude", "Longitude", "UTM Easting", "UTM Northing", "UTM Band and Zone"]
         i = 0
@@ -158,11 +162,11 @@ def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
                 rowData.append(value[1])
                 rowData.append(value[2])
             outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4], rowData[5], rowData[6]])
-    if exportMode == "x":
+    if exportMode == "x": #xlsx export mode
         outputFileLocation = os.path.join(fileLocation, "out.xlsx")
-        with open(outputFileLocation, 'wb') as f:
+        with open(outputFileLocation, 'wb') as f: #we have to use 'wb' as our write mode because .xlsx is a binary format, not a text format
             f.write(outputData.export('xlsx'))
-    else:
+    else: #csv output mode.
         outputFileLocation = os.path.join(fileLocation, "out.csv")
         with open (outputFileLocation, 'w', newline='') as f:
             f.write(outputData.export('csv'))
