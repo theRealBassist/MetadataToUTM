@@ -2,6 +2,8 @@ from importlib.resources import path
 import os
 from natsort import os_sorted
 from GPSPhoto import gpsphoto
+import tkinter
+from tkinter import filedialog
 import math
 from collections import defaultdict
 import tablib
@@ -15,7 +17,8 @@ def getDirectory(): #responsible for displaying the UI and collecting desired se
     print("===============")
     
     while True:
-        workingDir = input("Enter the full file path of the folder where your images are stored:\n")
+        tkinter.Tk().withdraw()
+        workingDir = filedialog.askdirectory(initialdir = "/", title = "Select the directory which contains your images")
         if os.path.exists(workingDir): #pathlib is incompatible with pyinstaller, so I'm using os.path
             selections.append(workingDir)
             break
