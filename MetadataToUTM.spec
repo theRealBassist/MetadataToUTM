@@ -3,7 +3,7 @@
 
 a = Analysis(
     ['MetadataToUTM.py'],
-    pathex=[],
+    pathex=['C:\\Users\\Cameron\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages'],
     binaries=[],
     datas=[],
     hiddenimports=['tablib'],
