@@ -1,7 +1,6 @@
 FROM python:3.11
 
-WORKDIR /tmp/
 ADD MetadataToUTM.py .
-RUN python /tmp/setup.py install && pip install setuptools natsort GPSPhoto tablib importlib 
+RUN python /usr/local/lib/python3.11/site-packages/setuptools/setup.py install && pip install setuptools natsort GPSPhoto tablib importlib 
 
 CMD {"python", "MetadataToUTM.py"}
