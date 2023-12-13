@@ -1,0 +1,7 @@
+pip install natsort
+pip install GPSPhoto
+pip install tablib[all]
+pip install openpyxl
+pip install piexif
+pip install pillow
+pip install exifread

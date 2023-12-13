@@ -55,8 +55,11 @@ def pullMetadata(workingDir): #responsible for extracting metadata from the imag
         if item.lower().endswith((".png", ".jpg", ".jpeg")): #a previous iteration of this only allowed for jpgs, but this also serves as a quick check that we are actually working with images to avoid IO errors
             try:
                 data = gpsphoto.getGPSData(os.path.join(workingDir, item))#the GPSPhoto library is by far the easiest way to extract the relevant metadata for this
+                #altitude = gpsinfo.getAlt(os.path.join(workingDir, item))#The altitude is pulled seperately
                 columns.append(data["Latitude"])
                 columns.append(data["Longitude"])
+                altitudeInFeet = data["Altitude"]*3.28084 #GPSPhoto automatically outputs the elevation in meters, so we are converting it to feet
+                columns.append(altitudeInFeet)
                 metadata[item].append(columns)
             except:
                 print(f"There was an error reading metadata from: {item}")#If an image does not have the relevant metadata, it will except and stop the whole script, so this handles that situation
@@ -85,6 +88,7 @@ def convertToUTM(gpsCoordinates):
         for latLong in gpsCoordinates[str(coordinateSet)]:
             latitude = latLong[0]
             longitude = latLong[1]
+            altitude = latLong[2]
             #Derived Values
             latitudeInRadians = (latitude*pi)/180
             longitudeInRadians = (longitude*pi)/180
@@ -120,6 +124,7 @@ def convertToUTM(gpsCoordinates):
             columns.append(easting)
             columns.append(northing)
             columns.append(bandAndZone)
+            columns.append(altitude)#persists the altitude data as it is currently stored in the third item of the gps coordinate data
         UTMCoordinateSet[coordinateSet].append(columns)
     return UTMCoordinateSet
 
@@ -127,7 +132,7 @@ def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
     outputData = tablib.Dataset() #while there are more in-depth libraries for writing .csv files, tablib is by far the easiest way to write .xlsx files
     if conversionMode == "u": #UTM data
         UTMData = convertToUTM(dataToOutput)
-        outputData.headers = ["Filename", "ID", "UTM Easting", "UTM Northing", "UTM Band and Zone"] #establishes the column headers
+        outputData.headers = ["Filename", "ID", "UTM Easting", "UTM Northing", "UTM Band and Zone", "Elevation"] #establishes the column headers
         i = 0 #we use this counter to generate the ID column
         for entry in UTMData:
             rowData = [] #there's probably a better way to do this, but this works pretty well.
@@ -135,12 +140,13 @@ def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
             rowData.append(i)
             i += 1
             for value in UTMData[str(entry)]:
-                rowData.append(value[0])
-                rowData.append(value[1])
-                rowData.append(value[2])
-            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4]])
+                rowData.append(value[0]) #UTM Easting
+                rowData.append(value[1]) #UTM Northing 
+                rowData.append(value[2]) #UTM Band and Zone
+                rowData.append(value[3]) #Elevation
+            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4], rowData[5]])
     if conversionMode == "l": #lat/long data
-        outputData.headers = ["Filename", "ID", "Latitude", "Longitude"]
+        outputData.headers = ["Filename", "ID", "Latitude", "Longitude", "Elevation"]
         i = 0
         for entry in dataToOutput:
             rowData = []
@@ -148,12 +154,13 @@ def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
             rowData.append(i)
             i += 1
             for value in dataToOutput[str(entry)]:
-                rowData.append(value[0])
-                rowData.append(value[1])
-            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3]])
+                rowData.append(value[0]) #Latitude
+                rowData.append(value[1]) #Longitude
+                rowData.append(value[2]) #Elevation
+            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4]])
     if conversionMode == "b": #both
         UTMData = convertToUTM(dataToOutput)
-        outputData.headers = ["Filename", "ID", "Latitude", "Longitude", "UTM Easting", "UTM Northing", "UTM Band and Zone"]
+        outputData.headers = ["Filename", "ID", "Latitude", "Longitude", "Elevation", "UTM Easting", "UTM Northing", "UTM Band and Zone"]
         i = 0
         for entry in dataToOutput:
             rowData = []
@@ -161,13 +168,14 @@ def exportData(dataToOutput, fileLocation, conversionMode, exportMode):
             rowData.append(i)
             i += 1
             for value in dataToOutput[str(entry)]:
-                rowData.append(value[0])
-                rowData.append(value[1])
+                rowData.append(value[0]) #Latitude
+                rowData.append(value[1]) #Longitude
+                rowData.append(value[2]) #Elevation
             for value in UTMData[str(entry)]:
-                rowData.append(value[0])
-                rowData.append(value[1])
-                rowData.append(value[2])
-            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4], rowData[5], rowData[6]])
+                rowData.append(value[0]) #UTM Easting
+                rowData.append(value[1]) #UTM Northing
+                rowData.append(value[2]) #UTM Band and Zone
+            outputData.append([rowData[0], rowData[1], rowData[2], rowData[3], rowData[4], rowData[5], rowData[6], rowData[7]])
     if exportMode == "x": #xlsx export mode
         outputFileLocation = os.path.join(fileLocation, "out.xlsx")
         with open(outputFileLocation, 'wb') as f: #we have to use 'wb' as our write mode because .xlsx is a binary format, not a text format
