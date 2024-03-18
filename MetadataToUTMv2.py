@@ -8,8 +8,8 @@ from GPSPhoto import gpsphoto
 import os
 
 def mainMenu():
-    print("METADATA TO UTM")
-    print("===============")
+    print("METADATA TO UTM CONVERTER".center(80))
+    print("===============\n".center(80))
 
     print ("[L] - Output Metadata to Latitude/Longitude format.")
     print ("[U] - Output Metdata to UTM zone 16N format.")
