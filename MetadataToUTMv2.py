@@ -6,6 +6,7 @@ from natsort import os_sorted
 import tablib
 from GPSPhoto import gpsphoto
 import os
+import simplekml
 
 def mainMenu():
     print("METADATA TO UTM CONVERTER".center(80))
@@ -15,6 +16,8 @@ def mainMenu():
     print ("[U] - Output Metdata to UTM zone 16N format.")
     print ("[S] - Output Metadata to State Plane - NAD83 West Georgia (US Survey ft.)")
     print ("[C] - Output Metadata to custom EPSG format.")
+    print ("[P] - Output Metadata to Google Earth Path. (.kml)")
+    print ("[G] - Output Metadata to Google Earth Points (.kml)")
     print ("\n[X] - Exit Program")
 
     userInput = input("\nSelection: ")
@@ -27,6 +30,7 @@ def mainMenu():
     
     folder = getFolder()
     importedData = importMetadata(folder)
+    kml = False
 
     if userInput == "L" or userInput == "l":
         convertedCoordinates = importedData
@@ -41,8 +45,16 @@ def mainMenu():
         epsg = getEPSG
         convertedCoordinates = convertCoordinates(importedData, 4326, epsg)
         writtenData = writeData(convertedCoordinates, True)
+    elif userInput == "P" or userInput == "p":
+        convertedCoordinates = importedData
+        writtenData = writeLineString(convertedCoordinates)
+        kml = True
+    elif userInput == "G" or userInput == "g":
+        convertedCoordinates = importedData
+        writtenData = writePoints(convertedCoordinates)
+        kml = True
 
-    exportData(folder, writtenData)
+    exportData(folder, writtenData, kml)
 
 def getEPSG():
     print("Please input the EPSG Zone that you are converting to.")
@@ -126,10 +138,31 @@ def writeData(convertedCoordinates, UTM):
     data.append_col(convertedCoordinates[3], header="ALTITUDE")
     return data
 
-def exportData(folder, data):
-    outputPath = os.path.join(os.path.realpath(folder), "output.csv")
-    with open(outputPath, 'w', newline='') as outputFile:
-        outputFile.write(data.csv)
+def writeLineString(convertedCoordinates):
+    kml = simplekml.Kml()
+    lineString = kml.newlinestring(name = "Output")
+    coords = []
+    for latitude, longitude, altitude in zip(convertedCoordinates[2], convertedCoordinates[1], convertedCoordinates[3]):
+        coords.append((latitude, longitude, altitude))
+    lineString.coords = coords
+    return kml
+
+def writePoints(convertedCoordinates):
+    kml = simplekml.Kml()
+    for pointName, latitude, longitude, altitude in zip(convertedCoordinates[0], convertedCoordinates[2], convertedCoordinates[1], convertedCoordinates[3]):
+        point = kml.newpoint(name=pointName)
+        point.coords = [(latitude, longitude, altitude)]
+    return kml
+
+
+def exportData(folder, data, kml = False):
+    if kml:
+        outputPath = os.path.join(os.path.realpath(folder), "output.kml")
+        data.save(outputPath)
+    else:
+        outputPath = os.path.join(os.path.realpath(folder), "output.csv")
+        with open(outputPath, 'w', newline='') as outputFile:
+            outputFile.write(data.csv)
 
 def exitProgram():
     while True:
