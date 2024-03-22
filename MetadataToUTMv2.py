@@ -54,6 +54,7 @@ def mainMenu():
         kml = True
 
     exportData(folder, writtenData, kml)
+    exitProgram()
 
 def getEPSG():
     print("Please input the EPSG Zone that you are converting to.")
@@ -148,7 +149,7 @@ def writeLineString(convertedCoordinates):
 
 def writePoints(convertedCoordinates):
     kml = simplekml.Kml()
-    for pointName, latitude, longitude, altitude in zip(convertedCoordinates[0], convertedCoordinates[2], convertedCoordinates[1], convertedCoordinates[3]):
+    for pointName, latitude, longitude, altitude in zip(*convertedCoordinates):
         point = kml.newpoint(name=pointName)
         point.coords = [(longitude, latitude, altitude)]
     return kml
@@ -164,6 +165,8 @@ def exportData(folder, data, kml = False):
             outputFile.write(data.csv)
 
 def exitProgram():
+    exitInput = input("If you would like to convert more images, please enter `yes`.")
+    mainMenu() if exitInput == "yes" or exitInput == "Yes" else ""
     while True:
         exitInput = input("Press `Enter` to exit...")
         quit()
