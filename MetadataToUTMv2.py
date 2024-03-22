@@ -112,7 +112,7 @@ def convertCoordinates(importedData, EPSGFrom, EPSGTo):
     
     transformer = Transformer.from_crs(f'EPSG:{EPSGFrom}', f'EPSG:{EPSGTo}', always_xy=True)
 
-    for name, y, x, altitude in zip(importedData[0], importedData[1], importedData[2], importedData[3]):
+    for name, y, x, altitude in zip(*importedData):
         names.append(name)
         convertedCoordinate = transformer.transform(x, y)
         convertedX.append(convertedCoordinate[0])
@@ -124,8 +124,8 @@ def convertCoordinates(importedData, EPSGFrom, EPSGTo):
 
 def writeData(convertedCoordinates, UTM):
     data = tablib.Dataset()
-    data.append_col(convertedCoordinates[0], header = "FILENAME")
-    data.headers = ["FILENAME", ]
+    data.append_col(convertedCoordinates[0], header = "FILENAME") #apparently with Tablib if you just append a column to an empty dataset, it will not generate the headers field properly
+    data.headers = ["FILENAME", ]                                 #therefore, we add the headers column after appending for some reason. It works.
 
     if UTM:
         data.append_col(convertedCoordinates[2], header="NORTHING")
@@ -141,8 +141,8 @@ def writeLineString(convertedCoordinates):
     kml = simplekml.Kml()
     lineString = kml.newlinestring(name = "Output")
     coords = []
-    for latitude, longitude, altitude in zip(convertedCoordinates[2], convertedCoordinates[1], convertedCoordinates[3]):
-        coords.append((latitude, longitude, altitude))
+    for pointName, latitude, longitude, altitude in zip(*convertedCoordinates):
+        coords.append((longitude, latitude, altitude))
     lineString.coords = coords
     return kml
 
@@ -150,16 +150,16 @@ def writePoints(convertedCoordinates):
     kml = simplekml.Kml()
     for pointName, latitude, longitude, altitude in zip(convertedCoordinates[0], convertedCoordinates[2], convertedCoordinates[1], convertedCoordinates[3]):
         point = kml.newpoint(name=pointName)
-        point.coords = [(latitude, longitude, altitude)]
+        point.coords = [(longitude, latitude, altitude)]
     return kml
 
 
 def exportData(folder, data, kml = False):
+    extension = ".kml" if kml else ".csv"
+    outputPath = os.path.join(os.path.realpath(folder), f'output{extension}')
     if kml:
-        outputPath = os.path.join(os.path.realpath(folder), "output.kml")
         data.save(outputPath)
     else:
-        outputPath = os.path.join(os.path.realpath(folder), "output.csv")
         with open(outputPath, 'w', newline='') as outputFile:
             outputFile.write(data.csv)
 
