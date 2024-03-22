@@ -1,7 +1,6 @@
 import tkinter
 from tkinter import filedialog
 from pyproj import Transformer
-from collections import defaultdict
 from natsort import os_sorted
 import tablib
 from GPSPhoto import gpsphoto
