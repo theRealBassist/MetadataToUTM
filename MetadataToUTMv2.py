@@ -273,7 +273,7 @@ def writeLineString(convertedCoordinates):
     kml = simplekml.Kml()
     lineString = kml.newlinestring(name = "Output")
     coords = []
-    for pointName, latitude, longitude, altitude in zip(*convertedCoordinates):
+    for pointName, latitude, longitude, altitude in zip(*convertedCoordinates): # Don't need the pointName variable, but it appears to be necessary to get zip() to work properly in this configuration
         coords.append((longitude, latitude, altitude))
     lineString.coords = coords
     return kml
