@@ -47,13 +47,8 @@ def metadataMainMenu():
         print("This is not a valid input. Please try again")
         mainMenu()
     
-    if userInput == "N" or userInput == "n":
-        folder = getFile()
-        importedData = importData(folder)
-    else:
-        folder = getFolder()
-        importedData = importMetadata(folder)
-
+    folder = getFolder()
+    importedData = importMetadata(folder)
     importedData = appendMetadata(importedData)
 
     kml = False
