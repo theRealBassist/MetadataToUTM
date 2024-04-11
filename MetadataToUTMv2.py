@@ -115,8 +115,8 @@ def coordinateConversionMenu():
         EPSGTo = getEPSG()
         utm = True
 
-    writtenData = writeData(convertedCoordinates, utm)
     convertedCoordinates = convertCoordinates(data, EPSGFrom, EPSGTo)
+    writtenData = writeData(convertedCoordinates, utm)
     exportData(os.path.dirname(file), writtenData)
 
 def getEPSG(gettingFrom = False):
