@@ -119,7 +119,7 @@ def coordinateConversionMenu():
     writtenData = writeData(convertedCoordinates, utm)
     exportData(os.path.dirname(file), writtenData)
 
-def getEPSG(gettingFrom = False):
+def getEPSG(gettingFrom = False): #Prompts the user for desired EPSG formats to convert to/from
     if gettingFrom:
         print("Please input the EPSG Zone that the coordinates are in.")
     else:
@@ -188,7 +188,7 @@ def importMetadata(workingDir): #responsible for extracting metadata from the im
     importedMetadata = [filenames, latitudes, longitudes, altitudes]           
     return importedMetadata
 
-def getHeader(data, toFind):
+def getHeader(data, toFind): #responsible for finding existing headers which roughly match a desired heading such as LATITUDE or NORTHING
     headers = data.headers
 
     for header in headers:
@@ -198,7 +198,7 @@ def getHeader(data, toFind):
     raise ValueError(f'{toFind} not found')
     exitProgram()
 
-def normalizeData(importedData):
+def normalizeData(importedData): #responsible for putting the image metadata into a format similar to what is expected to when the program is importing from a csv file.
     names = [] 
     x = []
     y = []
