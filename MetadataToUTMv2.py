@@ -67,13 +67,14 @@ def metadataMainMenu():
         convertedCoordinates = convertCoordinates(importedData, 4326, epsg)
         utm = True
     elif userInput == "P" or userInput == "p":
-        convertedCoordinates = importedData
+        writtenData = writeLineString(importedData)
         kml = True
     elif userInput == "G" or userInput == "g":
-        convertedCoordinates = importedData
+        writtenData = writePoints(importedData)
         kml = True
     
-    writtenData = writeData(convertedCoordinates, utm)
+    if kml : writtenData = writtenData 
+    else : writtenData = writeData(convertedCoordinates, utm)
     exportData(folder, writtenData, kml)
 
 def coordinateConversionMenu():
@@ -257,8 +258,6 @@ def appendMetadata(data):
         print("Please choose a valid option: [Y] or [N]")
         return appendMetadata(data)
     
-
-
 def convertCoordinates(importedData, EPSGFrom, EPSGTo):
     names = []
     convertedX = []
