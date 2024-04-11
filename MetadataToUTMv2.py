@@ -54,6 +54,8 @@ def metadataMainMenu():
         folder = getFolder()
         importedData = importMetadata(folder)
 
+    importedData = appendMetadata(importedData)
+
     kml = False
     utm = False
 
@@ -234,6 +236,33 @@ def importData(workingFile):
     except:
         print("There was an error importing the data.\n Please ensure the file exists where specified and is in the correct format.")
         exitProgram()
+
+def appendMetadata(data):
+    print("Would you like to append additional metadata to the table?")
+    print("[Y]es, [N]o?, or E[x]it:")
+    userInput = input()
+
+    if userInput == "Y" or userInput == "y":
+        originalData = data
+        newFolder = getFolder()
+        newData = importMetadata(newFolder)
+
+        for name, x, y, altitude in zip(*newData):
+            originalData[0].append(name)
+            originalData[1].append(x)
+            originalData[2].append(y)
+            originalData[3].append(altitude)
+        
+        return originalData
+    elif userInput == "N" or userInput == "n":
+        return data
+    elif userInput == "X" or userInput == "x":
+        exitProgram()
+    else:
+        print("Please choose a valid option: [Y] or [N]")
+        return appendMetadata(data)
+    
+
 
 def convertCoordinates(importedData, EPSGFrom, EPSGTo):
     names = []
