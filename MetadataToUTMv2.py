@@ -317,10 +317,9 @@ def exportData(folder, data, kml = False):
             outputFile.write(data.csv)
 
 def exitProgram():
-    exitInput = input("If you would like to convert more images, please enter `yes`.")
-    mainMenu() if exitInput == "yes" or exitInput == "Yes" else ""
-    while True:
-        exitInput = input("Press `Enter` to exit...")
-        quit()
+    print("Would you like to convert more images?")
+    exitInput = input("[Y]es or [N]o: ")
+    if exitInput == "Y" or exitInput == "y" : mainMenu()
+    else : quit()
 
 mainMenu()
