@@ -55,29 +55,28 @@ def metadataMainMenu():
         importedData = importMetadata(folder)
 
     kml = False
+    utm = False
 
     if userInput == "L" or userInput == "l":
         convertedCoordinates = importedData
-        writtenData = writeData(convertedCoordinates, False)
     elif userInput == "U" or userInput == "u":
         convertedCoordinates = convertCoordinates(importedData, 4326, 26916)
-        writtenData = writeData(convertedCoordinates, True)
+        utm = True
     elif userInput == "S" or userInput == "s":
         convertedCoordinates = convertCoordinates(importedData, 4326, 2240)
-        writtenData = writeData(convertedCoordinates, True)
+        utm = True
     elif userInput == "C" or userInput == "c":
         epsg = getEPSG
         convertedCoordinates = convertCoordinates(importedData, 4326, epsg)
-        writtenData = writeData(convertedCoordinates, True)
+        utm = True
     elif userInput == "P" or userInput == "p":
         convertedCoordinates = importedData
-        writtenData = writeLineString(convertedCoordinates)
         kml = True
     elif userInput == "G" or userInput == "g":
         convertedCoordinates = importedData
-        writtenData = writePoints(convertedCoordinates)
         kml = True
-
+    
+    writtenData = writeData(convertedCoordinates, utm)
     exportData(folder, writtenData, kml)
 
 def coordinateConversionMenu():
@@ -96,28 +95,28 @@ def coordinateConversionMenu():
 
     file = getFile()
     data = importData(file)
+    EPSGFrom = 0
+    EPSGTo = 0
+    utm = False
+
+    print("This conversion format will accept any EPSG codes as a source and/or target.")
+    print("Some useful codes: \n1. [26916] - NAD83 / UTM zone 16N\n2. [4326] - WGS 84 Latitude/Longitude\n3. [2240] - NAD83 State Plane West Georgia (US Survey ft.)")
+    continueInput = input("Press `Enter` to continue...")
+
     if userInput == "L" or userInput == "l":
-        print("This conversion format will accept any EPSG code as a source.")
-        print("Some useful codes: \n1. [26916] - NAD83 / UTM zone 16N\n2. [4326] - WGS 84 Latitude/Longitude\n3. [2240] - NAD83 State Plane West Georgia (US Survey ft.)")
-        continueInput = input("Press `Enter` to continue...")
-        EPSGZone = getEPSG(True)
-        convertedCoordinates = convertCoordinates(data, EPSGZone, 4326)
-        writtenData = writeData(convertedCoordinates, False)
+        EPSGFrom = getEPSG(True)
+        EPSGTo = 4326
     elif userInput == "S" or userInput == "s":
-        print("This conversion format will accept any EPSG code as a target.")
-        print("Some useful codes: \n1. [26916] - NAD83 / UTM zone 16N\n2. [4326] - WGS 84 Latitude/Longitude\n3. [2240] - NAD83 State Plane West Georgia (US Survey ft.)")
-        continueInput = input("Press `Enter` to continue...")
-        EPSGZone = getEPSG()
-        convertedCoordinates = convertCoordinates(data, 4326, EPSGZone)
-        writtenData = writeData(convertedCoordinates, True)
+        EPSGFrom = 4326
+        EPSGTo = getEPSG()
+        utm = True
     elif userInput == "B" or userInput == "b":
-        print("This conversion format will accept any EPSG code as a source and target.")
-        print("Some useful codes: \n1. [26916] - NAD83 / UTM zone 16N\n2. [4326] - WGS 84 Latitude/Longitude\n3. [2240] - NAD83 State Plane West Georgia (US Survey ft.)")
-        continueInput = input("Press `Enter` to continue...")
         EPSGFrom = getEPSG(True)
         EPSGTo = getEPSG()
-        convertedCoordinates = convertCoordinates(data, EPSGFrom, EPSGTo)
-        writtenData = writeData(convertedCoordinates, True)
+        utm = True
+
+    writtenData = writeData(convertedCoordinates, utm)
+    convertedCoordinates = convertCoordinates(data, EPSGFrom, EPSGTo)
     exportData(os.path.dirname(file), writtenData)
 
 def getEPSG(gettingFrom = False):
@@ -254,7 +253,7 @@ def convertCoordinates(importedData, EPSGFrom, EPSGTo):
     convertedCoordinates = [names, convertedX, convertedY, altitudes]
     return convertedCoordinates
 
-def writeData(convertedCoordinates, UTM):
+def writeData(convertedCoordinates, UTM = False):
     data = tablib.Dataset()
     data.append_col(convertedCoordinates[0], header = "NAME") #apparently with Tablib if you just append a column to an empty dataset, it will not generate the headers field properly
     data.headers = ["NAME", ]                                 #therefore, we add the headers column after appending for some reason. It works.
