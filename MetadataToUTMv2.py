@@ -249,7 +249,7 @@ def appendMetadata(data):
             originalData[2].append(y)
             originalData[3].append(altitude)
         
-        return originalData
+        return appendMetadata(originalData)
     elif userInput == "N" or userInput == "n":
         return data
     elif userInput == "X" or userInput == "x":
