@@ -1,4 +1,6 @@
+#from tkinter import *
 import tkinter
+from tkinter import ttk
 from tkinter import filedialog
 from pyproj import Transformer
 from natsort import os_sorted
@@ -7,6 +9,26 @@ from difflib import SequenceMatcher
 from GPSPhoto import gpsphoto
 import os
 import simplekml
+
+# def graphicalMenu():
+#     root = Tk()
+#     root.title("Metadata to UTM v2")
+
+#     mainFrame = ttk.Frame(root, padding = "3 3 12 12")
+#     mainFrame.grid(column = 0, row = 0, sticky = (N, W, E, S))
+#     root.columnconfigure(0, weight = 1)
+#     root.rowconfigure(0, weight = 1)
+
+#     operationSelection = BooleanVar()
+#     metadataExtractionRadio = Radiobutton(root, text="Metadata Extraction", variable = operationSelection, value = True)
+#     metadataExtractionRadio.grid(column=2, row=1, sticky=(W, E))
+#     coordinateConversionRadio = Radiobutton(root, text="Coordinate Conversion", variable = operationSelection, value = False)
+#     coordinateConversionRadio.grid(column=3, row=1, sticky=(W, E))
+
+#     for child in mainFrame.winfo_children():
+#         child.grid_configure(padx=5, pady=5)
+
+#     root.mainloop()
 
 def mainMenu():
     print("METADATA TO UTM CONVERTER".center(80))
@@ -323,3 +345,5 @@ def exitProgram():
     else : quit()
 
 mainMenu()
+
+#mainMenu()
